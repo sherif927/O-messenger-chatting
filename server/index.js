@@ -35,7 +35,7 @@ io.on('connection', (socket) => {
   socket.on('createMessage', (message, callback) => {
     var conv = map.get(socket.id);
 
-    if (user && isRealString(message.text)) {
+    if (isRealString(message.text)) {
       io.to(conv._id).emit('newMessage', generateMessage(message.senderName, message.text));
     }
     callback();

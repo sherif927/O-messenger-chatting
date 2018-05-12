@@ -6,8 +6,8 @@ var serviceAccount = require('./o-messenger-backend-firebase-adminsdk-llbsk-bef6
 
 //Initialize admin-sdk with credentials
 admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount),
-  databaseURL: "https://o-messenger-chatting.firebaseio.com"
+    credential: admin.credential.cert(serviceAccount),
+    databaseURL: "https://o-messenger-chatting.firebaseio.com"
 });
 
 firebaseEmitter.on('push-notification', async function (messageData) {
