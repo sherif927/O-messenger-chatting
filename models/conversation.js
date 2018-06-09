@@ -14,9 +14,6 @@ var ConversationSchema = new mongoose.Schema({
             required: true
         }, picture: {
             type: String
-        }, token: {
-            type: String,
-            required: true
         }
     }],
     messages: [

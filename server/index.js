@@ -6,8 +6,12 @@ const socketIO = require('socket.io');
 const HashMap = require('hashmap');
 
 //Util Imports
-const { generateMessage, generateLocationMessage } = require('./utils/message');
+const { generateMessage } = require('./utils/message');
 const { isRealString } = require('./utils/validation');
+
+//Model Imports
+const Conversation = require('../models/conversation');
+const Message = require('../models/message');
 
 //Application Config & Initialization
 const port = process.env.PORT || 3000;
@@ -17,26 +21,31 @@ var io = socketIO(server);
 var map = new HashMap();
 
 
-io.on('connection', (socket) => {
-  console.log('New user connected');
-
+io.on('connection', async(socket) => {
   socket.on('join', (params, callback) => {
-    if (!isRealString(params.name) || !isRealString(params.room)) {
-      return callback('Name and room name are required.');
+    if (!isRealString(params.conversationId)) {
+      return callback('Missing Values');
     }
 
-    socket.join(params.room);
-    map.remove(socket.id);
-    map.set(socket.id, params.conversation)
+    socket.join(params.conversationId);
+    //map.remove(socket.id);
+    var conversation=await Conversation.findOne({ _id: new ObjectID(params.conversationId) })
+    console.log(conversation);
+    console.log('---------------------------------');
+    map.set(socket.id,conversation);
+    console.log(map.get(socket.id));
 
     callback();
   });
 
   socket.on('createMessage', (message, callback) => {
-    var conv = map.get(socket.id);
-
-    if (isRealString(message.text)) {
-      io.to(conv._id).emit('newMessage', generateMessage(message.senderName, message.text));
+    if (isRealString(message.payload)) {
+      var msg=generateMessage(message);
+      /* var mMsg=new Message(msg);
+      var conv= map.get(socket.id);
+      conv.messages.push(mMsg);
+      await conv.save(); */
+      io.to(convId).emit('newMessage', msg);
     }
     callback();
   });
