@@ -1,9 +1,13 @@
+//Importing Application Configuration
+require('./config/config');
+
 //Library Imports
 const path = require('path');
 const http = require('http');
 const express = require('express');
 const socketIO = require('socket.io');
 const HashMap = require('hashmap');
+const mongoose = require('../db/mongoose');
 
 //Util Imports
 const { generateMessage } = require('./utils/message');
@@ -21,26 +25,32 @@ var io = socketIO(server);
 var map = new HashMap();
 
 
-io.on('connection', async(socket) => {
-  socket.on('join', (params, callback) => {
+io.on('connection', (socket) => {
+  socket.on('join', async (params, callback) => {
     if (!isRealString(params.conversationId)) {
       return callback('Missing Values');
     }
 
     socket.join(params.conversationId);
     //map.remove(socket.id);
-    var conversation=await Conversation.findOne({ _id: new ObjectID(params.conversationId) })
-    console.log(conversation);
-    console.log('---------------------------------');
-    map.set(socket.id,conversation);
-    console.log(map.get(socket.id));
+    try {
+      var conversation = await Conversation.findOne({ _id: new ObjectID(params.conversationId) });
+      console.log(conversation);
+      console.log('---------------------------------');
+      map.set(socket.id, conversation);
+      console.log(map.get(socket.id));
+      callback();
+      
+    } catch (err) {
+      callback(err);
+    }
 
-    callback();
+
   });
 
   socket.on('createMessage', (message, callback) => {
     if (isRealString(message.payload)) {
-      var msg=generateMessage(message);
+      var msg = generateMessage(message);
       /* var mMsg=new Message(msg);
       var conv= map.get(socket.id);
       conv.messages.push(mMsg);
