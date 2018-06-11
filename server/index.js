@@ -40,17 +40,18 @@ io.on('connection', (socket) => {
     }
   });
 
-  socket.on('createMessage', (message) => {
-    //if (isRealString(message.payload)) {
-      /* var mMsg=new Message(msg);
-      var conv= map.get(socket.id);
-      conv.messages.push(mMsg);
-      await conv.save(); */
-      // 
+  socket.on('createMessage', async (message) => {
       var conv= map.get(socket.id);
       var msg = generateMessage(message);
+      var conv= map.get(socket.id);
+      conv.messages.push(msg);
+      try{
+        await conv.save();
+      }catch(e){
+        console.log(`error ${e}`);
+      }
+      
       io.to(conv._id).emit('newMessage', JSON.stringify(msg));
-    //}
   });
 
   socket.on('disconnect', () => {
