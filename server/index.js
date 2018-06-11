@@ -12,6 +12,7 @@ const mongoose = require('../db/mongoose');
 //Util Imports
 const { generateMessage } = require('./utils/message');
 const { isRealString } = require('./utils/validation');
+const { ObjectID } = require('mongodb');
 
 //Model Imports
 const Conversation = require('../models/conversation');
@@ -26,38 +27,30 @@ var map = new HashMap();
 
 
 io.on('connection', (socket) => {
-  socket.on('join', async (params, callback) => {
-    if (!isRealString(params.conversationId)) {
-      return callback('Missing Values');
-    }
-
-    socket.join(params.conversationId);
+  socket.on('join', async (params) => {
+    console.log(`Incoming parameters is ${params}`);
+    console.log(`Socket Identifier ${socket.id}`)
+    socket.join(params);
     //map.remove(socket.id);
     try {
-      var conversation = await Conversation.findOne({ _id: new ObjectID(params.conversationId) });
-      console.log(conversation);
-      console.log('---------------------------------');
-      map.set(socket.id, conversation);
-      console.log(map.get(socket.id));
-      callback();
-      
+      var conversation = await Conversation.findOne({ _id: new ObjectID(params) });
+      map.set(socket.id, conversation);      
     } catch (err) {
-      callback(err);
+      console.log(err);
     }
-
-
   });
 
-  socket.on('createMessage', (message, callback) => {
-    if (isRealString(message.payload)) {
-      var msg = generateMessage(message);
+  socket.on('createMessage', (message) => {
+    //if (isRealString(message.payload)) {
       /* var mMsg=new Message(msg);
       var conv= map.get(socket.id);
       conv.messages.push(mMsg);
       await conv.save(); */
-      io.to(convId).emit('newMessage', msg);
-    }
-    callback();
+      // 
+      var conv= map.get(socket.id);
+      var msg = generateMessage(message);
+      io.to(conv._id).emit('newMessage', JSON.stringify(msg));
+    //}
   });
 
   socket.on('disconnect', () => {
